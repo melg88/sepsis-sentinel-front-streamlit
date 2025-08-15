@@ -12,7 +12,7 @@ O **Sepsis Sentinel** é uma ferramenta de apoio à decisão clínica que utiliz
 - **📊 Visualização de Resultados**: Apresentação clara do risco com indicadores visuais
 - **📈 Histórico de Predições**: Acompanhamento temporal dos resultados
 - **🎨 Interface Moderna**: Design responsivo e acessível
-- **🔗 Integração com API**: Conecta-se ao endpoint `sepsis-sentinel-api-develop.up.railway.app/predict`
+- **🔗 Integração com API**: Conecta-se ao endpoint `http://sepsis-sentinel-api-develop.up.railway.app/predict`
 
 ## 🏗️ Arquitetura
 
@@ -206,6 +206,7 @@ O sistema verifica automaticamente a conectividade com a API:
    - Verifique a URL da API nas variáveis de ambiente
    - Confirme se o serviço da API está rodando
    - Verifique logs de conectividade
+   - Resetar pipe do Railway
 
 2. **Erro de build**:
    - Verifique versões das dependências no `requirements.txt`

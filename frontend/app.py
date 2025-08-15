@@ -10,9 +10,7 @@ import plotly.graph_objects as go
 from datetime import datetime
 import time
 
-# -----------------------------------------------------------------------------
-# Configuração da Página
-# -----------------------------------------------------------------------------
+
 st.set_page_config(
     page_title="Sepsis Sentinel",
     page_icon="🩺",
@@ -20,9 +18,6 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# -----------------------------------------------------------------------------
-# Estilos CSS Customizados
-# -----------------------------------------------------------------------------
 st.markdown("""
 <style>
 /* Estilo geral */
@@ -476,50 +471,58 @@ def show_history_page():
         
         st.markdown("---")
         
-        # Tabela de histórico organizada
+        # Tabela de histórico organizada verticalmente
         st.subheader("📊 Detalhamento das Predições")
         
-        # Cria DataFrame organizado horizontalmente
-        history_data = []
-        for i, pred in enumerate(st.session_state.predictions):
-            pred_date = datetime.fromisoformat(pred["timestamp"])
-            history_data.append({
-                'Nº': i + 1,
-                'Data/Hora': pred_date.strftime("%d/%m/%Y %H:%M"),
-                'Probabilidade': f"{pred['result']['prediction']:.1%}",
-                'Nível de Risco': pred["result"]["risk_level"],
-                'Freq. Cardíaca': f"{pred['patient_data']['hr']} bpm",
-                'Saturação O2': f"{pred['patient_data']['o2sat']}%",
-                'Temperatura': f"{pred['patient_data']['temp']:.1f}°C",
-                'Pressão Sistólica': f"{pred['patient_data']['sbp']} mmHg"
-            })
-        
-        # Cria DataFrame final
-        history_df = pd.DataFrame(history_data)
-        
-        # Exibe a tabela organizada
-        st.dataframe(
-            history_df,
-            use_container_width=True,
-            hide_index=True,
-            height=400,
-            column_config={
-                "Nº": st.column_config.NumberColumn("Nº", width="small"),
-                "Data/Hora": st.column_config.TextColumn("Data/Hora", width="medium"),
-                "Probabilidade": st.column_config.TextColumn("Probabilidade", width="medium"),
-                "Nível de Risco": st.column_config.TextColumn("Nível de Risco", width="medium"),
-                "Freq. Cardíaca": st.column_config.TextColumn("Freq. Cardíaca", width="medium"),
-                "Saturação O2": st.column_config.TextColumn("Saturação O2", width="medium"),
-                "Temperatura": st.column_config.TextColumn("Temperatura", width="medium"),
-                "Pressão Sistólica": st.column_config.TextColumn("Pressão Sistólica", width="medium")
-            }
-        )
+        # Cria DataFrame organizado verticalmente
+        if st.session_state.predictions:
+            # Define as métricas que serão exibidas
+            metrics = [
+                'Data/Hora',
+                'Probabilidade',
+                'Nível de Risco',
+                'Freq. Cardíaca',
+                'Saturação O2',
+                'Temperatura',
+                'Pressão Sistólica'
+            ]
+            
+            # Cria dados para tabela vertical
+            vertical_data = {}
+            for i, pred in enumerate(st.session_state.predictions):
+                pred_date = datetime.fromisoformat(pred["timestamp"])
+                col_name = f"Predição {i + 1}"
+                
+                vertical_data[col_name] = [
+                    pred_date.strftime("%d/%m/%Y %H:%M"),
+                    f"{pred['result']['prediction']:.1%}",
+                    pred["result"]["risk_level"],
+                    f"{pred['patient_data']['hr']} bpm",
+                    f"{pred['patient_data']['o2sat']}%",
+                    f"{pred['patient_data']['temp']:.1f}°C",
+                    f"{pred['patient_data']['sbp']} mmHg"
+                ]
+            
+            # Cria DataFrame vertical
+            vertical_df = pd.DataFrame(vertical_data, index=metrics)
+            
+                         # Exibe a tabela vertical
+            st.dataframe(
+                vertical_df,
+                use_container_width=True,
+                height=500,  # Aumentado de 400 para 500
+                column_config={
+                    col: st.column_config.TextColumn(col, width="medium") 
+                    for col in vertical_data.keys()
+                }
+            )
         
         st.markdown("---")
 
         # Gráfico de evolução temporal das predições
-        if len(st.session_state.predictions) > 1:
-            st.subheader("📈 Evolução das Predições ao Longo do Tempo")
+        st.subheader(f"📈 Evolução das Predições ao Longo do Tempo ({len(st.session_state.predictions)} predições)")
+        
+        if st.session_state.predictions:
             
             # Prepara dados para o gráfico
             pred_dates = []
@@ -530,45 +533,64 @@ def show_history_page():
                 # Converte timestamp para datetime
                 pred_date = datetime.fromisoformat(pred["timestamp"])
                 pred_dates.append(pred_date)
-                
-                # Extrai probabilidade
+                 
+                # Extrai probabilidade (mantém como decimal 0-1)
                 prob = pred["result"]["prediction"]
-                pred_probabilities.append(prob * 100)  # Converte para porcentagem
+                pred_probabilities.append(prob)  # Mantém como decimal
                 
-                # Mapeia nível de risco para cores
+                # Mapeia nível de risco para cores - lógica mais robusta
                 risk_level = pred["result"]["risk_level"]
-                if "Alto" in risk_level or "Elevado" in risk_level:
+                
+                # Primeiro tenta mapear baseado na probabilidade (mais confiável)
+                if prob >= 0.6:
                     pred_risks.append("Alto")
-                elif "Moderado" in risk_level:
+                elif prob >= 0.3:
                     pred_risks.append("Moderado")
                 else:
                     pred_risks.append("Baixo")
+                
+                # Se risk_level for string, tenta usar ele também para validação
+                if isinstance(risk_level, str):
+                    risk_text = risk_level.lower()
+                    if any(word in risk_text for word in ["alto", "elevado", "high", "severe"]):
+                        # Se o texto indica alto risco mas a probabilidade é baixa, pode ser um erro
+                        if prob < 0.3:
+                            st.warning(f"⚠️ Inconsistência detectada: Probabilidade {prob:.1%} mas nível de risco '{risk_level}'")
+                        pred_risks[-1] = "Alto"  # Força o nível alto
+                    elif any(word in risk_text for word in ["moderado", "moderate", "médio", "medium"]):
+                        if prob < 0.2 or prob > 0.7:
+                            st.warning(f"⚠️ Inconsistência detectada: Probabilidade {prob:.1%} mas nível de risco '{risk_level}'")
+                        pred_risks[-1] = "Moderado"
+                    elif any(word in risk_text for word in ["baixo", "low", "baixo risco"]):
+                        if prob > 0.5:
+                            st.warning(f"⚠️ Inconsistência detectada: Probabilidade {prob:.1%} mas nível de risco '{risk_level}'")
+                        pred_risks[-1] = "Baixo"
             
-            # Cria DataFrame para o gráfico
+                         # Cria DataFrame para o gráfico
             chart_data = pd.DataFrame({
                 'Data/Hora': pred_dates,
-                'Probabilidade (%)': pred_probabilities,
+                'Probabilidade': pred_probabilities,
                 'Nível de Risco': pred_risks
             })
             
-            # Gráfico de linha com pontos
+                         # Gráfico de linha com pontos
             fig = px.line(
                 chart_data,
                 x='Data/Hora',
-                y='Probabilidade (%)',
+                y='Probabilidade',
                 title="Evolução da Probabilidade de Sepse ao Longo do Tempo",
                 labels={
                     "Data/Hora": "Data e Hora da Predição",
-                    "Probabilidade (%)": "Probabilidade de Sepse (%)"
+                    "Probabilidade": "Probabilidade de Sepse (0-1)"
                 },
                 markers=True,  # Adiciona pontos nos dados
                 line_shape='linear'
             )
             
-            # Adiciona pontos coloridos por nível de risco
+                         # Adiciona pontos coloridos por nível de risco
             fig.add_scatter(
                 x=chart_data['Data/Hora'],
-                y=chart_data['Probabilidade (%)'],
+                y=chart_data['Probabilidade'],
                 mode='markers',
                 marker=dict(
                     size=10,
@@ -578,21 +600,53 @@ def show_history_page():
                 showlegend=True
             )
             
-            # Configurações do gráfico
-            fig.update_layout(
+            # Configurações do gráfico com escala ajustada
+             # Se todos os valores forem 0, ajusta a escala para mostrar melhor os dados
+            min_prob = min(pred_probabilities) if pred_probabilities else 0
+            max_prob = max(pred_probabilities) if pred_probabilities else 1
+             
+             # Ajusta a escala do eixo Y baseado nos dados reais (0-1)
+             # Sempre inclui espaço para as linhas de referência importantes
+            if min_prob == 0 and max_prob == 0:
+                y_range = [0, 0.1]  # Escala de 0 a 0.1 para valores muito baixos
+            elif max_prob < 0.1:
+                y_range = [0, max(0.1, max_prob * 1.2)]  # Escala proporcional para valores baixos
+            elif max_prob < 0.3:
+                y_range = [0, 0.4]  # Escala que inclui risco moderado
+            elif max_prob < 0.6:
+                y_range = [0, 0.7]  # Escala que inclui risco alto
+            else:
+                y_range = [0, 1]  # Escala padrão de 0 a 1
+            
+                fig.update_layout(
                 height=500,
                 xaxis_title="Data e Hora da Predição",
-                yaxis_title="Probabilidade de Sepse (%)",
-                yaxis=dict(range=[0, 100]),  # Escala de 0% a 100%
+                yaxis_title="Probabilidade de Sepse (0-1)",
+                yaxis=dict(range=y_range),
                 hovermode='x unified',
                 showlegend=True
             )
             
             # Adiciona linhas de referência para níveis de risco
-            fig.add_hline(y=60, line_dash="dash", line_color="red", 
-                         annotation_text="Risco Alto (≥60%)", annotation_position="top right")
-            fig.add_hline(y=30, line_dash="dash", line_color="orange", 
-                         annotation_text="Risco Moderado (≥30%)", annotation_position="top right")
+            # Linha de risco moderado (sempre visível se a escala permitir)
+            if y_range[1] >= 0.3:
+                fig.add_hline(y=0.3, line_dash="dash", line_color="orange", 
+                             annotation_text="Risco Moderado (≥0.3)", annotation_position="top right")
+            elif y_range[1] >= 0.2:  # Se a escala for menor, mostra em posição ajustada
+                fig.add_hline(y=0.3, line_dash="dash", line_color="orange", 
+                             annotation_text="Risco Moderado (≥0.3)", annotation_position="top right")
+            
+            # Linha de risco alto (sempre visível se a escala permitir)
+            if y_range[1] >= 0.6:
+                fig.add_hline(y=0.6, line_dash="dash", line_color="red", 
+                             annotation_text="Risco Alto (≥0.6)", annotation_position="top right")
+            elif y_range[1] >= 0.4:  # Se a escala for menor, mostra em posição ajustada
+                fig.add_hline(y=0.6, line_dash="dash", line_color="red", 
+                             annotation_text="Risco Alto (≥0.6)", annotation_position="top right")
+            
+            # Linha de risco baixo (sempre visível)
+            fig.add_hline(y=0.05, line_dash="dash", line_color="green", 
+                         annotation_text="Risco Baixo (<0.05)", annotation_position="top right")
             
             # Exibe o gráfico
             st.plotly_chart(fig, use_container_width=True)
