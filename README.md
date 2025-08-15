@@ -12,7 +12,7 @@ O **Sepsis Sentinel** é uma ferramenta de apoio à decisão clínica que utiliz
 - **📊 Visualização de Resultados**: Apresentação clara do risco com indicadores visuais
 - **📈 Histórico de Predições**: Acompanhamento temporal dos resultados
 - **🎨 Interface Moderna**: Design responsivo e acessível
-- **🔗 Integração com API**: Conecta-se ao endpoint `sepsis-sentinel-api.railway.internal/predict`
+- **🔗 Integração com API**: Conecta-se ao endpoint `sepsis-sentinel-api-develop.up.railway.app/predict`
 
 ## 🏗️ Arquitetura
 
@@ -66,7 +66,7 @@ sepsis-sentinel-front-streamlit/
 
 ```bash
 # Variáveis obrigatórias
-SEPSIS_API_URL=https://sepsis-sentinel-api.railway.internal
+SEPSIS_API_URL=https://sepsis-sentinel-api-develop.up.railway.app
 RAILWAY_SERVICE_NAME=sepsis-sentinel-api
 PORT=8501
 
@@ -125,7 +125,7 @@ streamlit run frontend/app.py
 ## 🔌 Configuração da API
 
 ### Endpoint Principal
-- **URL**: `https://sepsis-sentinel-api.railway.internal/predict`
+- **URL**: `https://sepsis-sentinel-api-develop.up.railway.app/predict`
 - **Método**: POST
 - **Formato**: JSON
 
@@ -171,7 +171,7 @@ docker build -t sepsis-sentinel-frontend .
 
 ```bash
 docker run -p 8501:8501 \
-  -e SEPSIS_API_URL=https://sepsis-sentinel-api.railway.internal \
+  -e SEPSIS_API_URL=https://sepsis-sentinel-api-develop.up.railway.app \
   sepsis-sentinel-frontend
 ```
 

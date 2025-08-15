@@ -21,7 +21,7 @@ def get_api_url():
     # Fallback para Railway internal endpoint
     railway_service = os.environ.get("RAILWAY_SERVICE_NAME", "sepsis-sentinel-api")
     if railway_service:
-        return f"https://{railway_service}.railway.internal"
+        return f"https://sepsis-sentinel-api-develop.up.railway.app"
     
     # Fallback para desenvolvimento local
     return "http://localhost:8000"
