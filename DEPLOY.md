@@ -22,7 +22,7 @@ git push origin main
 No dashboard do projeto, vá em "Variables" e adicione:
 
 ```bash
-SEPSIS_API_URL=https://sepsis-sentinel-api.railway.internal
+SEPSIS_API_URL=https://sepsis-sentinel-api-develop.up.railway.app
 RAILWAY_SERVICE_NAME=sepsis-sentinel-api
 PORT=8501
 DEBUG=false

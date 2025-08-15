@@ -18,12 +18,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Expõe porta padrão do Streamlit
-EXPOSE 8501
+EXPOSE 8502
 
 # Define variáveis de ambiente padrão
-ENV STREAMLIT_SERVER_PORT=8501
-ENV PORT=8501
-ENV STREAMLIT_SERVER_ADDRESS=0.0.0.0
+# ENV STREAMLIT_SERVER_PORT=8502
+# ENV PORT=8502
+# ENV STREAMLIT_SERVER_ADDRESS=0.0.0.0
 
 # Comando para executar a aplicação
-CMD ["streamlit", "run", "frontend/app.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.headless=true"]
+CMD ["streamlit", "run", "frontend/app.py", "--server.port=8502", "--server.address=0.0.0.0", "--server.headless=true"]
+
+#CMD ["streamlit", "run", "frontend/app.py"]

@@ -6,7 +6,8 @@
 echo "🚀 Iniciando Sepsis Sentinel Frontend..."
 
 # Define porta padrão se não estiver definida
-export PORT=${PORT:-8501}
+#export PORT=${PORT:-8502}
+export PORT=8502
 
 echo "📡 Porta configurada: $PORT"
 
@@ -27,8 +28,10 @@ echo "✅ Arquivos verificados com sucesso"
 # Inicia a aplicação Streamlit
 echo "🌐 Iniciando Streamlit na porta $PORT..."
 exec streamlit run frontend/app.py \
-    --server.port=$PORT \
+    --server.port = 8502\
     --server.address=0.0.0.0 \
     --server.headless=true \
     --server.enableCORS=false \
     --server.enableXsrfProtection=false
+
+#exec streamlit run frontend/app.py
