@@ -238,23 +238,6 @@ LOG_LEVEL=DEBUG
 4. Push para a branch (`git push origin feature/AmazingFeature`)
 5. Abra um Pull Request
 
-## 📄 Licença
 
-Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
-
-## 📞 Suporte
-
-- **Issues**: [GitHub Issues](https://github.com/seu-usuario/sepsis-sentinel-front-streamlit/issues)
-- **Documentação**: Este README
-- **Railway Support**: [Railway Docs](https://docs.railway.app)
-
-## 🙏 Agradecimentos
-
-- Equipe de desenvolvimento do modelo ML
-- Comunidade Streamlit
-- Plataforma Railway
-- Contribuidores do projeto
-
----
 
 **⚠️ IMPORTANTE**: Este sistema é uma ferramenta de apoio à decisão clínica e **não substitui uma avaliação médica profissional**. Os resultados são preditivos e devem ser interpretados por um profissional de saúde.
