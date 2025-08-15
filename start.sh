@@ -6,7 +6,7 @@
 echo "🚀 Iniciando Sepsis Sentinel Frontend..."
 
 # Define porta padrão se não estiver definida
-export PORT=${PORT:-8501}
+export PORT=${PORT:-8502}
 
 echo "📡 Porta configurada: $PORT"
 
