@@ -34,4 +34,4 @@ echo "🌐 Iniciando Streamlit na porta $PORT..."
 #    --server.enableCORS=false \
 #    --server.enableXsrfProtection=false
 
-exec streamlit run frontend/app.py --server.headless=true
+exec streamlit run frontend/app.py

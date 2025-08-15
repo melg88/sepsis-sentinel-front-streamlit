@@ -45,5 +45,5 @@ DEBUG = os.environ.get("DEBUG", "false").lower() == "true"
 LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
 
 # Configurações do Streamlit
-STREAMLIT_SERVER_PORT =8502
+STREAMLIT_SERVER_PORT=8502
 STREAMLIT_SERVER_ADDRESS ="0.0.0.0"
