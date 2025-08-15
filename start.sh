@@ -27,7 +27,7 @@ echo "✅ Arquivos verificados com sucesso"
 # Inicia a aplicação Streamlit
 echo "🌐 Iniciando Streamlit na porta $PORT..."
 exec streamlit run frontend/app.py \
-    --server.port=8502\
+    --server.port=$PORT\
     --server.address=0.0.0.0 \
     --server.headless=true \
     --server.enableCORS=false \
