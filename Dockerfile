@@ -26,6 +26,6 @@ EXPOSE 8502
 # ENV STREAMLIT_SERVER_ADDRESS=0.0.0.0
 
 # Comando para executar a aplicação
-# CMD ["streamlit", "run", "frontend/app.py", "--server.port=8502", "--server.address=0.0.0.0", "--server.headless=true"]
+CMD ["streamlit", "run", "frontend/app.py", "--server.port=8502", "--server.address=0.0.0.0", "--server.headless=true"]
 
-CMD ["streamlit", "run", "frontend/app.py"]
+#CMD ["streamlit", "run", "frontend/app.py"]
