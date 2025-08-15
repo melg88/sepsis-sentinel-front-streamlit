@@ -103,13 +103,11 @@ body {
     font-size: 5rem;
     font-weight: bold;
     line-height: 1;
-
 }
 
 .probability-label {
     font-size: 1.2rem;
     font-weight: 500;
-
 }
 
 .result-title {
@@ -125,16 +123,7 @@ body {
 .result-message {
     font-size: 1.2rem;
     max-width: 600px;
-
 }
-
-
-
-
-
-
-
-
 
 /* Estilos para histórico */
 .history-container {
@@ -154,18 +143,6 @@ body {
     text-align: center;
     margin: 20px 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -385,7 +362,6 @@ def show_result_page():
 
     col_info1, col_info2 = st.columns(2)
 
-
     with col_info1:
         st.subheader("📋 Detalhes da Predição")
          
@@ -430,7 +406,7 @@ def show_result_page():
         gender_values = {0: 'Feminino', 1: 'Masculino'}
         unit_values = {0: 'Não', 1: 'Sim'}
          
-                 # Cria DataFrame com nomes amigáveis na vertical
+        # Cria DataFrame com nomes amigáveis na vertical
         display_data = []
         for field, value in patient_data.items():
             if field in field_names:
@@ -459,7 +435,6 @@ def show_result_page():
         # Exibe a tabela na vertical sem índices
         st.dataframe(patient_df, use_container_width=True, hide_index=True)
 
-
     st.markdown("<br><br>", unsafe_allow_html=True)
     _, col_button, _ = st.columns([2, 3, 2])
 
@@ -472,60 +447,182 @@ def show_history_page():
     st.header("📊 Histórico de Predições")
 
     if "predictions" in st.session_state and st.session_state.predictions:
-        # Cria DataFrame com histórico na vertical
-        history_data = []
-        for pred in st.session_state.predictions:
-            # Dados da predição
-            pred_data = {
-                'Data/Hora': datetime.fromisoformat(pred["timestamp"]).strftime("%d/%m/%Y %H:%M"),
-                'Risco': pred["result"]["risk_level"],
-                'Probabilidade': f"{pred['result']['prediction']:.1%}",
-                'Frequência Cardíaca (bpm)': pred["patient_data"]["hr"],
-                'Saturação de Oxigênio (%)': pred["patient_data"]["o2sat"],
-                'Temperatura Corporal (°C)': f"{pred['patient_data']['temp']:.1f}",
-                'Pressão Sistólica (mmHg)': pred["patient_data"]["sbp"],
-                'Pressão Diastólica (mmHg)': pred["patient_data"]["dbp"]
-            }
-            
-                         # Adiciona cada campo como uma linha separada
-            for field, value in pred_data.items():
-                history_data.append({
-                    'Campo': field,
-                    'Valor': value
-                })
+        # Resumo executivo no topo
+        st.subheader("📋 Resumo Executivo")
         
-        # Cria DataFrame final na vertical
+        # Calcula estatísticas gerais
+        total_predictions = len(st.session_state.predictions)
+        high_risk_count = sum(1 for pred in st.session_state.predictions 
+                             if pred["result"]["prediction"] >= 0.6)
+        moderate_risk_count = sum(1 for pred in st.session_state.predictions 
+                                 if 0.3 <= pred["result"]["prediction"] < 0.6)
+        low_risk_count = sum(1 for pred in st.session_state.predictions 
+                            if pred["result"]["prediction"] < 0.3)
+        
+        # Exibe métricas em colunas
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            st.metric("Total de Predições", total_predictions)
+        
+        with col2:
+            st.metric("Alto Risco", high_risk_count, delta=f"{high_risk_count/total_predictions*100:.1f}%")
+        
+        with col3:
+            st.metric("Risco Moderado", moderate_risk_count, delta=f"{moderate_risk_count/total_predictions*100:.1f}%")
+        
+        with col4:
+            st.metric("Baixo Risco", low_risk_count, delta=f"{low_risk_count/total_predictions*100:.1f}%")
+        
+        st.markdown("---")
+        
+        # Tabela de histórico organizada
+        st.subheader("📊 Detalhamento das Predições")
+        
+        # Cria DataFrame organizado horizontalmente
+        history_data = []
+        for i, pred in enumerate(st.session_state.predictions):
+            pred_date = datetime.fromisoformat(pred["timestamp"])
+            history_data.append({
+                'Nº': i + 1,
+                'Data/Hora': pred_date.strftime("%d/%m/%Y %H:%M"),
+                'Probabilidade': f"{pred['result']['prediction']:.1%}",
+                'Nível de Risco': pred["result"]["risk_level"],
+                'Freq. Cardíaca': f"{pred['patient_data']['hr']} bpm",
+                'Saturação O2': f"{pred['patient_data']['o2sat']}%",
+                'Temperatura': f"{pred['patient_data']['temp']:.1f}°C",
+                'Pressão Sistólica': f"{pred['patient_data']['sbp']} mmHg"
+            })
+        
+        # Cria DataFrame final
         history_df = pd.DataFrame(history_data)
         
-        # Exibe a tabela na vertical sem índices
-        st.dataframe(history_df, use_container_width=True, hide_index=True)
+        # Exibe a tabela organizada
+        st.dataframe(
+            history_df,
+            use_container_width=True,
+            hide_index=True,
+            height=400,
+            column_config={
+                "Nº": st.column_config.NumberColumn("Nº", width="small"),
+                "Data/Hora": st.column_config.TextColumn("Data/Hora", width="medium"),
+                "Probabilidade": st.column_config.TextColumn("Probabilidade", width="medium"),
+                "Nível de Risco": st.column_config.TextColumn("Nível de Risco", width="medium"),
+                "Freq. Cardíaca": st.column_config.TextColumn("Freq. Cardíaca", width="medium"),
+                "Saturação O2": st.column_config.TextColumn("Saturação O2", width="medium"),
+                "Temperatura": st.column_config.TextColumn("Temperatura", width="medium"),
+                "Pressão Sistólica": st.column_config.TextColumn("Pressão Sistólica", width="medium")
+            }
+        )
         
-        # Adiciona separador visual entre predições
         st.markdown("---")
-        st.markdown("**📋 Resumo das Predições:**")
-        
-        # Mostra resumo compacto por predição
-        for i, pred in enumerate(st.session_state.predictions):
-            st.markdown(f"**Predição {i+1}** - {datetime.fromisoformat(pred['timestamp']).strftime('%d/%m/%Y %H:%M')}")
-            st.markdown(f"- Risco: {pred['result']['risk_level']} | Probabilidade: {pred['result']['prediction']:.1%}")
-            st.markdown("---")
 
-        # Gráfico de evolução temporal
-        if len(history_data) > 1:
-            st.subheader("📈 Evolução Temporal")
-
-            # Converte probabilidades para valores numéricos
-            prob_values = [float(pred["result"]["prediction"]) for pred in st.session_state.predictions]
-            timestamps = [datetime.fromisoformat(pred["timestamp"]) for pred in st.session_state.predictions]
-
+        # Gráfico de evolução temporal das predições
+        if len(st.session_state.predictions) > 1:
+            st.subheader("📈 Evolução das Predições ao Longo do Tempo")
+            
+            # Prepara dados para o gráfico
+            pred_dates = []
+            pred_probabilities = []
+            pred_risks = []
+            
+            for pred in st.session_state.predictions:
+                # Converte timestamp para datetime
+                pred_date = datetime.fromisoformat(pred["timestamp"])
+                pred_dates.append(pred_date)
+                
+                # Extrai probabilidade
+                prob = pred["result"]["prediction"]
+                pred_probabilities.append(prob * 100)  # Converte para porcentagem
+                
+                # Mapeia nível de risco para cores
+                risk_level = pred["result"]["risk_level"]
+                if "Alto" in risk_level or "Elevado" in risk_level:
+                    pred_risks.append("Alto")
+                elif "Moderado" in risk_level:
+                    pred_risks.append("Moderado")
+                else:
+                    pred_risks.append("Baixo")
+            
+            # Cria DataFrame para o gráfico
+            chart_data = pd.DataFrame({
+                'Data/Hora': pred_dates,
+                'Probabilidade (%)': pred_probabilities,
+                'Nível de Risco': pred_risks
+            })
+            
+            # Gráfico de linha com pontos
             fig = px.line(
-                x=timestamps,
-                y=prob_values,
-                title="Evolução do Risco de Sepse",
-                labels={"x": "Data/Hora", "y": "Probabilidade de Sepse"}
+                chart_data,
+                x='Data/Hora',
+                y='Probabilidade (%)',
+                title="Evolução da Probabilidade de Sepse ao Longo do Tempo",
+                labels={
+                    "Data/Hora": "Data e Hora da Predição",
+                    "Probabilidade (%)": "Probabilidade de Sepse (%)"
+                },
+                markers=True,  # Adiciona pontos nos dados
+                line_shape='linear'
             )
-            fig.update_layout(height=400)
+            
+            # Adiciona pontos coloridos por nível de risco
+            fig.add_scatter(
+                x=chart_data['Data/Hora'],
+                y=chart_data['Probabilidade (%)'],
+                mode='markers',
+                marker=dict(
+                    size=10,
+                    color=[{'Alto': '#ef5350', 'Moderado': '#fbc02d', 'Baixo': '#66bb6a'}[risk] for risk in pred_risks]
+                ),
+                name='Nível de Risco',
+                showlegend=True
+            )
+            
+            # Configurações do gráfico
+            fig.update_layout(
+                height=500,
+                xaxis_title="Data e Hora da Predição",
+                yaxis_title="Probabilidade de Sepse (%)",
+                yaxis=dict(range=[0, 100]),  # Escala de 0% a 100%
+                hovermode='x unified',
+                showlegend=True
+            )
+            
+            # Adiciona linhas de referência para níveis de risco
+            fig.add_hline(y=60, line_dash="dash", line_color="red", 
+                         annotation_text="Risco Alto (≥60%)", annotation_position="top right")
+            fig.add_hline(y=30, line_dash="dash", line_color="orange", 
+                         annotation_text="Risco Moderado (≥30%)", annotation_position="top right")
+            
+            # Exibe o gráfico
             st.plotly_chart(fig, use_container_width=True)
+            
+            # Estatísticas resumidas
+            st.subheader("📊 Estatísticas das Predições")
+            col_stats1, col_stats2, col_stats3 = st.columns(3)
+            
+            with col_stats1:
+                st.metric(
+                    "Total de Predições",
+                    len(st.session_state.predictions),
+                    help="Número total de avaliações realizadas"
+                )
+            
+            with col_stats2:
+                avg_prob = sum(pred_probabilities) / len(pred_probabilities)
+                st.metric(
+                    "Probabilidade Média",
+                    f"{avg_prob:.1f}%",
+                    help="Probabilidade média de todas as predições"
+                )
+            
+            with col_stats3:
+                high_risk_count = sum(1 for risk in pred_risks if risk == "Alto")
+                st.metric(
+                    "Predições de Alto Risco",
+                    high_risk_count,
+                    help="Número de predições com risco alto"
+                )
     else:
         st.info("📝 Nenhuma predição realizada ainda. Use a aba 'Predição' para começar.")
 
@@ -605,8 +702,9 @@ if 'result' not in st.session_state:
     st.session_state.result = None
 
 # Cabeçalho e Disclaimer (aparecem em todas as "páginas")
-st.title("🩺 Sepsis Sentinel")
-st.markdown("#### Sistema de Detecção Precoce de Sepse - Uma ferramenta de apoio baseada em Machine Learning")
+st.title("🏥 Sepsis Sentinel AI")
+st.markdown("#### **Sistema Inteligente de Detecção Precoce de Sepse**")
+#st.markdown("*Plataforma de Apoio à Decisão Clínica com Machine Learning*")
 st.markdown("---")
 
 # Verificação de saúde da API (apenas para logs)
@@ -614,7 +712,8 @@ api_healthy, health_data = check_api_health()
 
 # Log da verificação (não exibido na interface)
 if not api_healthy:
-    st.error("❌ API Desconectada - Verifique se o backend está rodando")
+
+    print("❌ API Desconectada - Verifique se o backend está rodando")
 
 st.warning("""
 **AVISO IMPORTANTE:** Esta ferramenta é um protótipo e **não substitui uma avaliação médica profissional.** 
