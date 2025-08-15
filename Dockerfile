@@ -25,4 +25,4 @@ ENV STREAMLIT_SERVER_PORT=8501
 ENV STREAMLIT_SERVER_ADDRESS=0.0.0.0
 
 # Comando para executar a aplicação
-CMD ["streamlit", "run", "frontend/app.py", "--server.port=${PORT:-8501}", "--server.address=0.0.0.0"]
+CMD ["streamlit", "run", "frontend/app.py", "--server.port=$PORT", "--server.address=0.0.0.0", "--server.headless=true"]
